@@ -1,11 +1,9 @@
 package com.app.journalapp.entity;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
+import jakarta.persistence.*;
 import lombok.Data;
 
+import java.time.LocalDateTime;
 import java.util.Date;
 
 @Data
@@ -17,5 +15,5 @@ public class JournalEntry {
     private long id;
     private String title;
     private String content;
-    private Date date;
+    private LocalDateTime date;
 }
