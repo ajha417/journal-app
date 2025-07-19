@@ -3,7 +3,6 @@ package com.app.journalapp.service;
 import com.app.journalapp.entity.JournalEntry;
 import com.app.journalapp.repo.JournalAppRepo;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -15,13 +14,12 @@ public class JournalEntryService {
 
     private final JournalAppRepo journalAppRepo;
 
-    public void saveJournalEntry(JournalEntry journalEntry) {
-        journalAppRepo.save(journalEntry);
+    public JournalEntry saveJournalEntry(JournalEntry journalEntry) {
+        return journalAppRepo.save(journalEntry);
     }
 
-    public JournalEntry getJournalEntryById(long id) {
-        Optional<JournalEntry> journalEntry = journalAppRepo.findById(id);
-        return journalEntry.orElse(null);
+    public Optional<JournalEntry> getJournalEntryById(long id) {
+        return journalAppRepo.findById(id);
     }
 
     public void deleteJournalEntry(long id) {
@@ -29,19 +27,18 @@ public class JournalEntryService {
     }
 
     public JournalEntry updateJournalEntry(long id, JournalEntry journalEntry) {
-        JournalEntry journalEntry1 = getJournalEntryById(id);
-        if (journalEntry1 != null) {
+        Optional<JournalEntry> journalEntry1 = getJournalEntryById(id);
+        if (journalEntry1.isPresent()) {
             if (journalEntry.getTitle() != null && !journalEntry.getTitle().isEmpty()) {
-                journalEntry1.setTitle(journalEntry.getTitle());
+                journalEntry1.get().setTitle(journalEntry.getTitle());
             } else {
-                journalEntry1.setTitle(journalEntry1.getTitle());
+                journalEntry1.get().setTitle(journalEntry1.get().getTitle());
             }
-            journalEntry1.setContent(journalEntry.getContent() != null && !journalEntry.getContent().isEmpty() ? journalEntry.getContent() : journalEntry1.getContent());
-            journalEntry1.setDate(journalEntry.getDate());
-            journalAppRepo.save(journalEntry1);
+            journalEntry1.get().setContent(journalEntry.getContent() != null && !journalEntry.getContent().isEmpty() ? journalEntry.getContent() : journalEntry1.get().getContent());
+            journalEntry1.get().setDate(journalEntry.getDate());
+            journalAppRepo.save(journalEntry1.get());
         }
-
-        return journalEntry1;
+        return journalEntry1.orElse(null);
     }
 
     public List<JournalEntry> getAllJournalEntries() {
