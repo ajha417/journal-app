@@ -1,5 +1,6 @@
 package com.app.journalapp.controller;
 
+import com.app.journalapp.dto.JournalEntryRequestDto;
 import com.app.journalapp.entity.JournalEntry;
 import com.app.journalapp.service.JournalEntryService;
 import lombok.RequiredArgsConstructor;
@@ -20,16 +21,15 @@ public class JournalEntryController {
 
     public final JournalEntryService journalEntryService;
 
-    @GetMapping("/entries")
-    public ResponseEntity<?> getJournalEntries() {
-        List<JournalEntry> journalEntries = journalEntryService.getAllJournalEntries();
+    @GetMapping("/entries/{username}")
+    public ResponseEntity<?> getJournalEntriesOfUser(@PathVariable String username) {
+        List<JournalEntry> journalEntries = journalEntryService.getAllJournalEntries(username);
         return journalEntries.isEmpty() ? new ResponseEntity<>(HttpStatus.NOT_FOUND) : new ResponseEntity<>(journalEntries, HttpStatus.OK);
     }
 
     @PostMapping("/addEntry")
-    public ResponseEntity<JournalEntry> createEntry(@RequestBody JournalEntry journalEntry) {
+    public ResponseEntity<JournalEntry> createEntry(@RequestBody JournalEntryRequestDto journalEntry) {
         try {
-            journalEntry.setDate(LocalDateTime.now());
             return new ResponseEntity<>(journalEntryService.saveJournalEntry(journalEntry), HttpStatus.CREATED);
         } catch (Exception e) {
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
@@ -49,8 +49,7 @@ public class JournalEntryController {
     }
 
     @PutMapping("/updateEntry/{id}")
-    public ResponseEntity<?> updateEntry(@PathVariable long id, @RequestBody JournalEntry journalEntry) {
-        journalEntry.setDate(LocalDateTime.now());
+    public ResponseEntity<?> updateEntry(@PathVariable long id, @RequestBody JournalEntryRequestDto journalEntry) {
         JournalEntry journalEntry1 = journalEntryService.updateJournalEntry(id, journalEntry);
         if (journalEntry1 != null) {
             return new ResponseEntity<>(journalEntry1, HttpStatus.OK);

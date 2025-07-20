@@ -1,5 +1,6 @@
 package com.app.journalapp.entity;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -23,5 +24,6 @@ public class JournalEntry {
     private LocalDateTime date;
     @JoinColumn(name = "user_id")
     @ManyToOne
+    @JsonBackReference
     private Users user;
 }
