@@ -3,6 +3,7 @@ package com.app.journalapp.service;
 import com.app.journalapp.entity.Users;
 import com.app.journalapp.repo.UserRepo;
 import lombok.AllArgsConstructor;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -11,8 +12,11 @@ import java.util.List;
 @AllArgsConstructor
 public class UserService {
     private final UserRepo userRepo;
+    private PasswordEncoder passwordEncoder;
 
     public void saveUser(Users users) {
+        users.setRoles(List.of("ROLE_USER"));
+        users.setPassword(passwordEncoder.encode(users.getPassword()));
         userRepo.save(users);
     }
 

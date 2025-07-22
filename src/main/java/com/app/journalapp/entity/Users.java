@@ -27,4 +27,5 @@ public class Users {
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
     @JsonManagedReference
     private List<JournalEntry> journalEntries;
+    private List<String> roles;
 }

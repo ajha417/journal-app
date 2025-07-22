@@ -5,6 +5,8 @@ import com.app.journalapp.service.UserService;
 import lombok.AllArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -19,15 +21,6 @@ public class UserController {
         return new ResponseEntity<>(userService.getAllUsers(), HttpStatus.OK);
     }
 
-    @PostMapping("/addUser")
-    public ResponseEntity<Users> createUser(@RequestBody Users users) {
-        try {
-            userService.saveUser(users);
-            return new ResponseEntity<>(users, HttpStatus.CREATED);
-        } catch (Exception e) {
-            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
-        }
-    }
 
     @DeleteMapping("/deleteUser/{id}")
     public ResponseEntity<?> deleteUser(@PathVariable("id") long id) {
@@ -36,14 +29,14 @@ public class UserController {
     }
 
 
-    @PutMapping( "/updateUser/{username}")
-    public ResponseEntity<?> updateUser(@RequestBody Users users, @PathVariable String username) {
+    @PutMapping( "/updateUser")
+    public ResponseEntity<?> updateUser(@RequestBody Users users) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String username = authentication.getName();
         Users existingUser = userService.findByUsername(username);
-        if (existingUser != null) {
-            existingUser.setUsername(users.getUsername());
-            existingUser.setPassword(users.getPassword());
-            userService.saveUser(existingUser);
-        }
+        existingUser.setUsername(users.getUsername());
+        existingUser.setPassword(users.getPassword());
+        userService.saveUser(existingUser);
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
 }
