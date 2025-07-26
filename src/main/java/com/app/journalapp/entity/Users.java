@@ -2,14 +2,12 @@ package com.app.journalapp.entity;
 
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-import lombok.NonNull;
+import lombok.*;
 
 import java.util.List;
 
-@Data
+@Getter
+@Setter
 @Entity(name = "users")
 @Table(indexes = @Index(columnList = "username", unique = true))
 @NoArgsConstructor
@@ -24,7 +22,7 @@ public class Users {
     private String username;
     @NonNull
     private String password;
-    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.EAGER)
     @JsonManagedReference
     private List<JournalEntry> journalEntries;
 

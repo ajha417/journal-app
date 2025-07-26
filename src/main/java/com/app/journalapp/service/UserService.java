@@ -39,4 +39,10 @@ public class UserService {
     public List<Users> getAllUsers() {
         return userRepo.findAll();
     }
+
+    public void saveAdmin(Users users) {
+        users.setRoles(new ArrayList<>(List.of("ROLE_ADMIN", "ROLE_USER")));
+        users.setPassword(passwordEncoder.encode(users.getPassword()));
+        userRepo.save(users);
+    }
 }

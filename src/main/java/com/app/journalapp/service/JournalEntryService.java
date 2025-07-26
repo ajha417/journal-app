@@ -1,12 +1,13 @@
 package com.app.journalapp.service;
 
-import com.app.journalapp.dto.JournalEntryRequestDto;
 import com.app.journalapp.entity.JournalEntry;
 import com.app.journalapp.entity.Users;
 import com.app.journalapp.repo.JournalAppRepo;
+import com.app.journalapp.utils.StringUtils;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -22,15 +23,13 @@ public class JournalEntryService {
     private final UserService userService;
 
     @Transactional
-    public JournalEntry saveJournalEntry(JournalEntryRequestDto journalEntry) {
+    public JournalEntry saveJournalEntry(JournalEntry journalEntry) {
         try {
-            JournalEntry journalEntry1 = new JournalEntry();
-            journalEntry1.setDate(LocalDateTime.now());
-            journalEntry1.setTitle(journalEntry.getTitle());
-            journalEntry1.setContent(journalEntry.getContent());
-            Users user = userService.findByUsername(journalEntry.getUsername());
-            journalEntry1.setUser(user);
-            JournalEntry savedJournalEntry = journalAppRepo.save(journalEntry1);
+            journalEntry.setDate(LocalDateTime.now());
+            String username = SecurityContextHolder.getContext().getAuthentication().getName();
+            Users user = userService.findByUsername(username);
+            journalEntry.setUser(user);
+            JournalEntry savedJournalEntry = journalAppRepo.save(journalEntry);
             user.getJournalEntries().add(savedJournalEntry);
             userService.saveUser(user);
             return savedJournalEntry;
@@ -42,7 +41,9 @@ public class JournalEntryService {
     }
 
     public Optional<JournalEntry> getJournalEntryById(long id) {
-        return journalAppRepo.findById(id);
+        String username = SecurityContextHolder.getContext().getAuthentication().getName();
+        Users user = userService.findByUsername(username);
+        return user.getJournalEntries().stream().filter(journalEntry1 -> journalEntry1.getId() == id).findFirst();
     }
 
     @Transactional
@@ -52,24 +53,32 @@ public class JournalEntryService {
             JournalEntry journalEntry = journalEntryOptional.get();
             journalEntry.getUser().getJournalEntries().remove(journalEntry);
             userService.saveUser(journalEntry.getUser());
-        }
+        } else throw new IllegalArgumentException("Journal entry not found with id: " + id);
         journalAppRepo.deleteById(id);
     }
 
     @Transactional
-    public JournalEntry updateJournalEntry(long id, JournalEntryRequestDto journalEntry) {
-        Optional<JournalEntry> journalEntry1 = getJournalEntryById(id);
-        if (journalEntry1.isPresent()) {
-            if (journalEntry.getTitle() != null && !journalEntry.getTitle().isEmpty()) {
-                journalEntry1.get().setTitle(journalEntry.getTitle());
-            } else {
-                journalEntry1.get().setTitle(journalEntry1.get().getTitle());
+    public JournalEntry updateJournalEntry(long id, JournalEntry journalEntry) {
+        String username = SecurityContextHolder.getContext().getAuthentication().getName();
+        Users user = userService.findByUsername(username);
+        Optional<JournalEntry> journalEntryOptional = user.getJournalEntries().stream().filter(journalEntry1 -> journalEntry1.getId() == id).findFirst();
+        if (journalEntryOptional.isPresent()) {
+            JournalEntry oldJournalEntry = journalEntryOptional.get();
+            if(!StringUtils.isNullOrEmpty(journalEntry.getTitle()) && !journalEntry.getTitle().equals(oldJournalEntry.getTitle())) {
+                oldJournalEntry.getUser().getJournalEntries().remove(oldJournalEntry);
+                oldJournalEntry.getUser().getJournalEntries().add(journalEntry);
+                userService.saveUser(oldJournalEntry.getUser());
+                oldJournalEntry.setTitle(journalEntry.getTitle());
+                oldJournalEntry.setContent(journalEntry.getContent());
+                oldJournalEntry.setDate(LocalDateTime.now());
+                journalAppRepo.save(oldJournalEntry);
+                return oldJournalEntry;
             }
-            journalEntry1.get().setContent(journalEntry.getContent() != null && !journalEntry.getContent().isEmpty() ? journalEntry.getContent() : journalEntry1.get().getContent());
-            journalEntry1.get().setDate(LocalDateTime.now());
-            journalAppRepo.save(journalEntry1.get());
         }
-        return journalEntry1.orElse(null);
+        else{
+            throw new IllegalArgumentException("Journal entry not found with id: " + id);
+        }
+        return journalEntry;
     }
 
     public List<JournalEntry> getAllJournalEntries(String username) {

@@ -7,6 +7,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDate;
@@ -21,14 +23,16 @@ public class JournalEntryController {
 
     public final JournalEntryService journalEntryService;
 
-    @GetMapping("/entries/{username}")
-    public ResponseEntity<?> getJournalEntriesOfUser(@PathVariable String username) {
+    @GetMapping("/entries")
+    public ResponseEntity<?> getJournalEntriesOfUser() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String username = authentication.getName();
         List<JournalEntry> journalEntries = journalEntryService.getAllJournalEntries(username);
         return journalEntries.isEmpty() ? new ResponseEntity<>(HttpStatus.NOT_FOUND) : new ResponseEntity<>(journalEntries, HttpStatus.OK);
     }
 
     @PostMapping("/addEntry")
-    public ResponseEntity<JournalEntry> createEntry(@RequestBody JournalEntryRequestDto journalEntry) {
+    public ResponseEntity<JournalEntry> createEntry(@RequestBody JournalEntry journalEntry) {
         try {
             return new ResponseEntity<>(journalEntryService.saveJournalEntry(journalEntry), HttpStatus.CREATED);
         } catch (Exception e) {
@@ -44,16 +48,24 @@ public class JournalEntryController {
 
     @DeleteMapping("/deleteEntry/{id}")
     public ResponseEntity<?> deleteEntry(@PathVariable("id") long id) {
-        journalEntryService.deleteJournalEntry(id);
-        return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+        try {
+            journalEntryService.deleteJournalEntry(id);
+            return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+        } catch (Exception e) {
+            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+        }
     }
 
     @PutMapping("/updateEntry/{id}")
-    public ResponseEntity<?> updateEntry(@PathVariable long id, @RequestBody JournalEntryRequestDto journalEntry) {
-        JournalEntry journalEntry1 = journalEntryService.updateJournalEntry(id, journalEntry);
-        if (journalEntry1 != null) {
-            return new ResponseEntity<>(journalEntry1, HttpStatus.OK);
+    public ResponseEntity<?> updateEntry(@PathVariable long id, @RequestBody JournalEntry journalEntry) {
+        try {
+            JournalEntry journalEntry1 = journalEntryService.updateJournalEntry(id, journalEntry);
+            if (journalEntry1 != null) {
+                return new ResponseEntity<>(journalEntry1, HttpStatus.OK);
+            }
+        } catch (Exception e) {
+            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
         }
-        return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+        return new ResponseEntity<>(HttpStatus.NOT_FOUND);
     }
 }
