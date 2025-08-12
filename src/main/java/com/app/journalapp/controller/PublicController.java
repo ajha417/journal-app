@@ -1,5 +1,6 @@
 package com.app.journalapp.controller;
 
+import com.app.journalapp.cache.AppCache;
 import com.app.journalapp.entity.Users;
 import com.app.journalapp.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -14,6 +15,9 @@ public class PublicController {
     @Autowired
     private UserService userService;
 
+    @Autowired
+    private AppCache appCache;
+
     @GetMapping("/health")
     public String healthCheck() {
         return "working";
@@ -27,5 +31,10 @@ public class PublicController {
         } catch (Exception e) {
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
         }
+    }
+
+    @GetMapping("/clearAppCache")
+    public void clearAppCache() {
+        appCache.init();
     }
 }
