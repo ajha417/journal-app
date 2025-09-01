@@ -38,3 +38,4 @@ out/
 
 
 /src/main/java/test/
+/src/main/java/com/app/journalapp/rest/dto/TestProgram.java
