@@ -22,6 +22,8 @@ public class Users {
     private String username;
     @NonNull
     private String password;
+    private String email;
+    private boolean sentimentAnalysis;
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.EAGER)
     @JsonManagedReference
     private List<JournalEntry> journalEntries;
