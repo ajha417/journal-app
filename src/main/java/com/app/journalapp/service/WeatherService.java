@@ -5,8 +5,6 @@ import com.app.journalapp.constants.IPlaceHolderConstants;
 import com.app.journalapp.rest.dto.WeatherDto;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
@@ -30,7 +28,7 @@ public class WeatherService {
 
     public WeatherDto getWeather(String city) {
 
-        WeatherDto weatherDto = redisService.get("weather", WeatherDto.class);
+        WeatherDto weatherDto = redisService.getRedisCacheEntry("weather#" + city, WeatherDto.class);
         if (weatherDto != null) {
             return weatherDto;
         }
@@ -48,8 +46,10 @@ public class WeatherService {
 
             ResponseEntity<WeatherDto> response = restTemplate.exchange(url, HttpMethod.GET, null, WeatherDto.class);
             if (response.getStatusCode().is2xxSuccessful()) {
-                redisService.set("weather", response.getBody(), 3000L);
-                return response.getBody();
+                WeatherDto responseWeatherDto = response.getBody();
+                if (responseWeatherDto != null) {
+                    redisService.saveRedisCacheEntry("weather#" + city, response.getBody(), 3000L);
+                }
             }
             return null;
         }
