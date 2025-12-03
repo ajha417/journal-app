@@ -35,6 +35,8 @@ dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-security:3.4.5'
     implementation 'org.springframework.boot:spring-boot-starter-mail'
     implementation 'org.springframework:spring-context-support'
+//    dependency for apache kafka integration
+    implementation 'org.springframework.kafka:spring-kafka'
 }
 
 tasks.named('test') {
