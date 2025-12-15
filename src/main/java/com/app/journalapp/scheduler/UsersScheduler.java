@@ -3,9 +3,11 @@ package com.app.journalapp.scheduler;
 import com.app.journalapp.cache.AppCache;
 import com.app.journalapp.entity.JournalEntry;
 import com.app.journalapp.entity.Users;
+import com.app.journalapp.model.SentimentData;
 import com.app.journalapp.repo.UserRepoImpl;
 import com.app.journalapp.service.SentimentService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
@@ -26,6 +28,9 @@ public class UsersScheduler {
     @Autowired
     private AppCache appCache;
 
+    @Autowired
+    private KafkaTemplate<String, SentimentData> kafkaTemplate;
+
     public List<Users> fetchUsersWithSentimentAnalysis() {
         return userRepoImpl.getUsersWithSentimentAnalysis();
     }
@@ -40,6 +45,10 @@ public class UsersScheduler {
                        collect((Collectors.toList()));
                String entry = String.join(" ", filteredContent);
                String sentiment = sentimentService.getSentiment(entry);
+
+               //sending data via kafka-template
+               SentimentData sentimentData = SentimentData.builder().email(user.getEmail()).sentiment(sentiment).build();
+               kafkaTemplate.send("weekly-sentiment-analysis", sentimentData.getEmail(), sentimentData);
            }
     }
 
