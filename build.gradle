@@ -37,6 +37,11 @@ dependencies {
     implementation 'org.springframework:spring-context-support'
 //    dependency for apache kafka integration
     implementation 'org.springframework.kafka:spring-kafka'
+    // JWT (JJWT) for creating/parsing/verifying tokens
+    implementation 'io.jsonwebtoken:jjwt-api:0.12.6'
+    runtimeOnly 'io.jsonwebtoken:jjwt-impl:0.12.6'
+    runtimeOnly 'io.jsonwebtoken:jjwt-jackson:0.12.6' // JSON support via Jackson
+
 }
 
 tasks.named('test') {
